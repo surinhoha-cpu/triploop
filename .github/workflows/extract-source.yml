@@ -1,0 +1,30 @@
+name: Extract Triploop source
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract embedded app
+        run: |
+          python - <<'PY'
+          import re, base64, gzip
+          from pathlib import Path
+          wrapper = Path("index.html").read_text(encoding="utf-8")
+          match = re.search(r'atob\("([^"]+)"\)', wrapper)
+          if not match:
+              raise SystemExit("Embedded app payload not found")
+          source = gzip.decompress(base64.b64decode(match.group(1))).decode("utf-8")
+          Path("triploop_mvp.html").write_text(source, encoding="utf-8")
+          print(f"Extracted {len(source)} characters")
+          PY
+      - name: Commit extracted source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add triploop_mvp.html
+          git commit -m "Extract Triploop app source for maintenance"
+          git push
