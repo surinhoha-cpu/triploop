@@ -81,7 +81,7 @@
 </head>
 <body>
 <div class="app">
- <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 23</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
+ <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 26</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
  <div class="layout">
   <aside class="panel stack">
    <div><h2 class="section-title">일정 추가</h2><p class="hint">여행 정보를 바꾸려면 상단의 ‘여행 정보 수정’을 눌러주세요.</p></div>
@@ -89,7 +89,7 @@
    <div class="voice"><button id="micBtn">🎙 음성 입력</button><button id="parseBtn" style="flex:1">일정 정리하기</button></div>
    <div class="hint">여행 전체 일정도 한 번에 붙여넣을 수 있어요. 날짜 제목과 목록을 읽어 날짜별로 나눕니다. 음성 인식은 브라우저 지원 여부에 따라 달라집니다.</div>
    <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:7px 0">
-   <div><h2 class="section-title">Google Maps 링크로 장소 가져오기</h2><textarea id="mapPlaceUrl" class="field" rows="2" placeholder="Google Maps 공유 링크를 붙여넣으세요"></textarea><div class="row" style="margin-top:8px"><input id="mapPlaceDate" class="field" type="date"><input id="mapPlaceTime" class="field" type="time"></div><button id="importMapPlace" class="ghost" style="width:100%;margin-top:8px">링크에서 장소 정보 가져오기</button><div id="mapPlacePreview" class="hint" style="margin-top:8px"></div><div id="mapPlaceActions" class="row hidden" style="margin-top:8px"><button id="addImportedPlace" style="flex:1">일정에 추가</button><button id="saveImportedWishlist" class="ghost" style="flex:1">보류 후보로 저장</button></div><p class="hint">장소명·주소·좌표와 OpenStreetMap에 등록된 운영정보를 조회해요. Google Maps 단축 링크는 정보 추출이 제한될 수 있어요.</p></div><div><h2 class="section-title">장소 직접 추가</h2><input id="placeName" class="field" placeholder="장소 이름 (예: NGV)"><div class="row" style="margin-top:8px"><input id="placeDate" class="field" type="date"><input id="placeTime" class="field" type="time" value="10:00"></div><button id="addPlace" class="ghost" style="width:100%;margin-top:8px">+ 장소 추가</button></div>
+   <div><h2 class="section-title">Google Maps 링크로 장소 가져오기</h2><textarea id="mapPlaceUrl" class="field" rows="2" placeholder="Google Maps 링크 또는 장소명 입력"></textarea><div class="row" style="margin-top:8px"><input id="mapPlaceDate" class="field" type="date"><input id="mapPlaceTime" class="field" type="time"></div><button id="importMapPlace" class="ghost" style="width:100%;margin-top:8px">링크에서 장소 정보 가져오기</button><div id="mapPlacePreview" class="hint" style="margin-top:8px"></div><div id="mapPlaceActions" class="row hidden" style="margin-top:8px"><button id="addImportedPlace" style="flex:1">일정에 추가</button><button id="saveImportedWishlist" class="ghost" style="flex:1">보류 후보로 저장</button></div><p class="hint">장소명·주소·좌표와 OpenStreetMap에 등록된 운영정보를 조회해요. Google Maps 단축 링크는 정보 추출이 제한될 수 있어요.</p></div><div><h2 class="section-title">장소 직접 추가</h2><input id="placeName" class="field" placeholder="장소 이름 (예: NGV)"><div class="row" style="margin-top:8px"><input id="placeDate" class="field" type="date"><input id="placeTime" class="field" type="time" value="10:00"></div><button id="addPlace" class="ghost" style="width:100%;margin-top:8px">+ 장소 추가</button></div>
    <div id="wishlistBox" class="stack" style="margin-top:4px"><h2 class="section-title">보류 / 추가 후보</h2><div id="wishlistItems" class="stack"></div></div>
    <div class="footer">일정은 이 기기의 브라우저에 자동 저장됩니다. 지도·장소 검색에는 인터넷 연결이 필요합니다.</div>
   </aside>
@@ -282,7 +282,7 @@ async function geocode(query){
 }
 function parseGoogleMapsLink(raw){
  const text=String(raw||'').trim();if(!text)return null;
- let u;try{u=new URL(text)}catch{return null}
+ let u;try{u=new URL(text)}catch{return {url:'',query:text,plain:true}}
  const host=u.hostname.toLowerCase();
  if(!/(^|\.)google\.com$|(^|\.)maps\.app\.goo\.gl$|(^|\.)goo\.gl$/.test(host))return null;
  if(host==='maps.app.goo.gl'||host==='goo.gl')return {short:true,url:text};
@@ -300,7 +300,7 @@ async function importGoogleMapsPlace(){
  const raw=$('mapPlaceUrl').value.trim(),parsed=parseGoogleMapsLink(raw);
  $('mapPlacePreview').innerHTML='';$('mapPlaceActions').classList.add('hidden');pendingImportedPlace=null;
  if(!parsed){toast('Google Maps 링크 형식을 확인해 주세요');return}
- if(parsed.short){$('mapPlacePreview').textContent='이 링크는 단축 주소라 브라우저에서 원본 장소 정보를 직접 읽을 수 없어요. Google Maps에서 장소 이름이 보이는 전체 공유 링크를 복사해 주세요.';return}
+ if(parsed.short){$('mapPlacePreview').textContent='Google Maps 단축 링크는 장소 정보를 바로 읽을 수 없어요. 링크를 열어 장소 페이지 주소창의 전체 주소를 복사하거나, 이 칸에 장소명과 도시를 입력해 주세요. 예: Seven Seeds Coffee Roasters, Melbourne.';return}
  let best=null;
  try{
   if(parsed.query){
@@ -472,4 +472,22 @@ $('startDate').onchange=()=>{selected=$('startDate').value;render()};$('endDate'
 render();
 </script>
 <!-- Deployment retry after transient Pages artifact lookup error. -->
+
+<style>
+/* Revision 26: compact place editor modal on phones; scroll inside the dialog. */
+#editModal.modal.open{align-items:center;justify-content:center;overflow:hidden;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom))}
+#editModal .edit-stop-dialog{width:min(440px,100%);max-height:min(70dvh,620px);overflow-y:auto;overflow-x:hidden;margin:auto;padding:14px 14px 15px;border-radius:18px}
+#editModal .dialog-heading{margin-bottom:9px}
+#editModal .dialog-heading h3{font-size:19px}
+#editModal .dialog-close{width:34px;height:34px;flex-basis:34px;font-size:23px}
+#editModal .edit-stop-fields{gap:7px}
+#editModal .edit-field{gap:3px}
+#editModal .edit-field>label{font-size:12px}
+#editModal .edit-stop-dialog input.field,#editModal .edit-stop-dialog textarea.field{min-height:36px;padding:7px 9px;font-size:14px}
+#editModal .edit-map-link textarea.field{min-height:48px}
+#editModal .edit-map-link button{min-height:34px;padding:6px 10px;font-size:12px}
+#editModal .edit-stop-actions{gap:6px;margin-top:2px}
+#editModal .edit-stop-actions button{min-height:34px;padding:6px 11px;font-size:12px}
+@media(max-width:600px){#editModal .edit-stop-dialog{width:100%;max-height:70dvh;padding:13px 12px}#editModal .edit-stop-fields{gap:6px}}
+</style>
 </body></html>
