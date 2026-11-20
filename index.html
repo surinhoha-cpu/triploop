@@ -56,7 +56,7 @@ function dateLabel(d){if(!d)return '';const x=new Date(d+'T12:00:00');return x.t
 function render(){
  $('tripCount').textContent='여행 '+trips.length+'개';
  $('tripGrid').innerHTML='';
- if(!trips.length){$('tripGrid').innerHTML='<div class="empty" style="grid-column:1/-1"><strong>아직 만든 여행이 없어요.</strong><p>첫 여행을 추가하면 이곳에서 날짜별 일정을 관리할 수 있어요.</p><button class="primary" onclick="document.getElementById(\'newTrip\').click()">＋ 첫 여행 만들기</button></div>';return}
+ if(!trips.length){$('tripGrid').innerHTML='<div class="empty" style="grid-column:1/-1"><strong>아직 만든 여행이 없어요.</strong><p>첫 여행을 추가하면 이곳에서 날짜별 일정을 관리할 수 있어요.</p><button class="primary" id="emptyNewTrip">＋ 첫 여행 만들기</button></div>';$('emptyNewTrip').addEventListener('click',()=>showDialog(null));return}
  trips.sort((a,b)=>(a.start||'').localeCompare(b.start||''));
  trips.forEach(t=>{
   const card=document.createElement('article');card.className='card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',t.title+' 일정 열기');
@@ -80,7 +80,7 @@ $('tripForm').addEventListener('submit',e=>{
  e.preventDefault();const id=$('tripId').value||('trip-'+Date.now());
  const start=$('tripStart').value,end=$('tripEnd').value;if(end<start){alert('종료일은 시작일보다 빠를 수 없어요.');return}
  const old=trips.find(t=>t.id===id);
- if(old){Object.assign(old,{title:$('tripName').value.trim(),city:$('tripCity').value.trim(),start,end});}
+ if(old){const title=$('tripName').value.trim(),city=$('tripCity').value.trim();Object.assign(old,{title,city,start,end});const saved=JSON.parse(localStorage.getItem('triploop_trip_'+id)||'{}');Object.assign(saved,{title,city,start,end});localStorage.setItem('triploop_trip_'+id,JSON.stringify(saved));}
  else{const t={id,title:$('tripName').value.trim(),city:$('tripCity').value.trim(),start,end,accommodation:'',placeCount:0};trips.push(t);localStorage.setItem('triploop_trip_'+id,JSON.stringify({title:t.title,city:t.city,start,end,accommodation:'',stops:[]}));}
  saveTrips();$('tripDialog').close();render();
 });
