@@ -71,7 +71,7 @@ const legs=document.getElementById('travelLegs');if(legs)legs.remove();
 if(n.length){
  const box=document.createElement('section');box.id='travelLegs';box.className='travel-legs';
  box.innerHTML='<h3 class="section-title">장소 간 이동</h3><p class="hint">도보·대중교통의 예상 소요시간은 Google Maps에서 실시간 경로로 확인할 수 있어요.</p>';
- const routeStops=[...(state.accommodation?[{name:state.accommodation,accommodation:true}:{}]),...n];
+ const routeStops=[...(state.accommodation?[{name:state.accommodation,accommodation:true}]:[]),...n];
  for(let i=1;i<routeStops.length;i++){
   const from=routeStops[i-1],to=routeStops[i];
   const fromQuery=from.accommodation?state.accommodation:mapQueryForStop(from),toQuery=mapQueryForStop(to);
