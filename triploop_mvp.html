@@ -110,12 +110,7 @@ async function drawMap(items){
  if(routePts.length===1)map.setView([routePts[0].lat,routePts[0].lon],14);
  else if(routePts.length>1){
    let bounds=L.latLngBounds(routePts.map(p=>[p.lat,p.lon]));map.fitBounds(bounds,{padding:[28,28]});
-   try{
-     let coords=routePts.map(p=>`${p.lon},${p.lat}`).join(';');
-     let r=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`);
-     let j=await r.json();
-     if(j.routes?.[0])routeLayer=L.geoJSON(j.routes[0].geometry,{style:{color:'#526b5b',weight:4,opacity:.8,dashArray:'7 6'}}).addTo(map);
-   }catch(e){}
+   // Walking and transit routing is opened per leg in Google Maps; do not draw a misleading driving route here.
  }else if(lodgingPoint)map.setView([lodgingPoint.lat,lodgingPoint.lon],14);
  else map.setView([-37.8136,144.9631],12);
 }
