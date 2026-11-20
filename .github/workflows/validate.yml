@@ -1,0 +1,29 @@
+name: Validate Triploop scripts
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          for source in ("index.html", "triploop_mvp.html"):
+              html = Path(source).read_text(encoding="utf-8")
+              blocks = re.findall(r"<script\\b[^>]*>(.*?)</script\\s*>", html, re.I | re.S)
+              for i, block in enumerate(blocks):
+                  if block.strip():
+                      Path(f"/tmp/{Path(source).stem}-{i}.js").write_text(block, encoding="utf-8")
+          PY
+          for file in /tmp/index-*.js /tmp/triploop_mvp-*.js; do
+            [ -f "$file" ] || continue
+            echo "Checking $file"
+            node --check "$file"
+          done
