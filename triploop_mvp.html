@@ -278,9 +278,9 @@ $('parseBtn').onclick=()=>{
  for(let line of lines){
    let head=line.replace(/^[#>*•\-\s]+/,'').trim();
    // Natural-language candidate cues are saved to the separate wishlist, not placed on the map.
-   const candidateCue=/(?:보류\s*후보|후보로\s*추가|후보에\s*추가|시간\s*남으면|여유\s*있으면|가능하면\s*방문|대안으로)/i.test(head);
+   const candidateCue=/(?:보류|후보|시간\s*(?:남으면|되면)|여유\s*있으면|가능하면|대안으로)/i.test(head);
    if(candidateCue){
-     let candidate=head.replace(/^(?:보류\s*후보\s*[:：]?|후보\s*[:：]?)/i,'').replace(/(?:후보로\s*추가|후보에\s*추가|시간\s*남으면|여유\s*있으면|가능하면\s*방문|대안으로)/ig,'').replace(/^[-:：\s]+|[-:：\s]+$/g,'').trim();
+     let candidate=head.replace(/^(?:보류\s*후보|후보)\s*[:：]?/i,'').replace(/(?:보류\s*후보|후보)(?:로)?\s*(?:넣어줘|추가해줘|등록해줘)?/ig,'').replace(/(?:시간\s*(?:남으면|되면)|여유\s*있으면|가능하면\s*(?:방문|가고 싶어)?|대안으로)/ig,'').replace(/(?:일정에\s*)?(?:넣어줘|추가해줘|등록해줘)/ig,'').replace(/^[-:：\s]+|[-:：\s]+$/g,'').trim();
      if(candidate.length>1&&!state.wishlist.some(w=>w.name.toLowerCase()===candidate.toLowerCase())){state.wishlist.push({name:candidate,note:'자연어 입력으로 추가된 보류 후보'});added++;}
      continue;
    }
