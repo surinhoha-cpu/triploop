@@ -7,7 +7,7 @@
 :root{--bg:#f7f7f4;--panel:#fff;--ink:#242620;--muted:#85877f;--line:#e8e8e1;--accent:#66745d;--soft:#edf0e9;--danger:#b45b50}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input{font:inherit}button{cursor:pointer}.app{max-width:1080px;margin:0 auto;padding:34px 24px 50px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:52px}.brand{font-size:26px;font-weight:800;letter-spacing:-1.4px}.brand span{color:var(--accent)}.sub{font-size:13px;color:var(--muted);margin-top:5px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:52px}.brand{font-size:26px;font-weight:800;letter-spacing:-1.4px}.brand span{color:var(--accent)}.sub{font-size:13px;color:var(--muted);margin-top:5px}.revision-top{font-size:11px;color:#a0a198;margin-top:3px}
 .primary{border:0;border-radius:12px;background:var(--accent);color:white;padding:13px 18px;font-weight:650}.primary:hover{filter:brightness(.96)}
 h1{font-size:clamp(26px,4vw,36px);letter-spacing:-1.5px;margin:0 0 9px}.intro{color:var(--muted);font-size:14px;margin:0 0 30px}
 .toolbar{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:1.4px;font-weight:750;color:var(--accent);text-transform:uppercase;margin-bottom:9px}
@@ -24,13 +24,13 @@ dialog{border:0;border-radius:20px;padding:0;width:min(440px,calc(100% - 28px));
 </head>
 <body>
 <div class="app">
-<header class="top"><div><div class="brand">trip<span>loop</span></div><div class="sub">여행을 한곳에서 관리하세요.</div></div><button class="primary" id="newTrip">＋ 새 여행 만들기</button></header>
+<header class="top"><div><div class="brand">trip<span>loop</span></div><div class="sub">여행을 한곳에서 관리하세요.</div><div class="revision-top">Triploop · 수정본 7</div></div><button class="primary" id="newTrip">＋ 새 여행 만들기</button></header>
 <main>
 <div class="eyebrow">YOUR TRIPS</div><h1>어디로 떠나볼까요?</h1><p class="intro">여행을 만들고 날짜별 일정을 한곳에서 관리할 수 있어요.</p>
 <div class="toolbar"><div class="count" id="tripCount">여행 0개</div></div>
 <section class="grid" id="tripGrid"></section>
 </main>
-<footer>Triploop · 수정본 3</footer>
+
 </div>
 <dialog id="tripDialog"><form class="modal" id="tripForm">
 <h2 id="dialogTitle">새 여행 만들기</h2><input type="hidden" id="tripId">
