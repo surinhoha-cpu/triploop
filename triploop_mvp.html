@@ -20,7 +20,7 @@
 .wishlist-item strong{font-size:13px}
 .wishlist-item .hint{margin-top:2px}
 .wishlist-item button{font-size:11px;padding:7px 9px}
-.wishlist-empty{font-size:12px;color:var(--muted);padding:8px 0}
+.wishlist-empty{font-size:12px;color:var(--muted);padding:8px 0}.place-import-preview{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fbfcfa;color:var(--ink)}.place-import-preview strong{display:block;font-size:14px}.place-import-preview small{display:block;color:var(--muted);margin-top:3px;line-height:1.45}.place-meta{display:block;color:var(--muted);font-size:11px;margin-top:4px;line-height:1.45}
 .trip-countdown{display:inline-flex;align-items:center;margin-top:7px;padding:5px 10px;border-radius:999px;background:#edf1ec;color:#526b5b;font-size:12px;font-weight:750}
 .trip-details{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
 .detail-card.flight-card{display:grid;gap:7px;padding:12px 13px}
@@ -44,7 +44,7 @@
 /* Flight ticket typography: retain the route-card layout, soften secondary labels. */
 @media(max-width:520px){.flight-heading{font-size:11px;font-weight:650}.flight-code{font-size:19px;font-weight:750}.flight-city{font-size:10px;font-weight:550;line-height:1.3}.flight-terminal{font-size:9px}.flight-time{font-size:17px;font-weight:700}.flight-middle{font-size:9px}}
 
-/* Revision 22: mobile-safe trip settings form. */
+/* Revision 23: Google Maps link import with public place metadata. */
 @media(max-width:600px){
  .dialog{width:100%;max-width:520px;padding:18px 15px;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));}
  .dialog .stack{gap:10px;}
@@ -60,7 +60,7 @@
 </head>
 <body>
 <div class="app">
- <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 22</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
+ <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 23</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
  <div class="layout">
   <aside class="panel stack">
    <div><h2 class="section-title">일정 추가</h2><p class="hint">여행 정보를 바꾸려면 상단의 ‘여행 정보 수정’을 눌러주세요.</p></div>
@@ -68,7 +68,7 @@
    <div class="voice"><button id="micBtn">🎙 음성 입력</button><button id="parseBtn" style="flex:1">일정 정리하기</button></div>
    <div class="hint">여행 전체 일정도 한 번에 붙여넣을 수 있어요. 날짜 제목과 목록을 읽어 날짜별로 나눕니다. 음성 인식은 브라우저 지원 여부에 따라 달라집니다.</div>
    <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:7px 0">
-   <div><h2 class="section-title">장소 직접 추가</h2><input id="placeName" class="field" placeholder="장소 이름 (예: NGV)"><div class="row" style="margin-top:8px"><input id="placeDate" class="field" type="date"><input id="placeTime" class="field" type="time" value="10:00"></div><button id="addPlace" class="ghost" style="width:100%;margin-top:8px">+ 장소 추가</button></div>
+   <div><h2 class="section-title">Google Maps 링크로 장소 가져오기</h2><textarea id="mapPlaceUrl" class="field" rows="2" placeholder="Google Maps 공유 링크를 붙여넣으세요"></textarea><div class="row" style="margin-top:8px"><input id="mapPlaceDate" class="field" type="date"><input id="mapPlaceTime" class="field" type="time"></div><button id="importMapPlace" class="ghost" style="width:100%;margin-top:8px">링크에서 장소 정보 가져오기</button><div id="mapPlacePreview" class="hint" style="margin-top:8px"></div><div id="mapPlaceActions" class="row hidden" style="margin-top:8px"><button id="addImportedPlace" style="flex:1">일정에 추가</button><button id="saveImportedWishlist" class="ghost" style="flex:1">보류 후보로 저장</button></div><p class="hint">장소명·주소·좌표와 OpenStreetMap에 등록된 운영정보를 조회해요. Google Maps 단축 링크는 정보 추출이 제한될 수 있어요.</p></div><div><h2 class="section-title">장소 직접 추가</h2><input id="placeName" class="field" placeholder="장소 이름 (예: NGV)"><div class="row" style="margin-top:8px"><input id="placeDate" class="field" type="date"><input id="placeTime" class="field" type="time" value="10:00"></div><button id="addPlace" class="ghost" style="width:100%;margin-top:8px">+ 장소 추가</button></div>
    <div id="wishlistBox" class="stack" style="margin-top:4px"><h2 class="section-title">보류 / 추가 후보</h2><div id="wishlistItems" class="stack"></div></div>
    <div class="footer">일정은 이 기기의 브라우저에 자동 저장됩니다. 지도·장소 검색에는 인터넷 연결이 필요합니다.</div>
   </aside>
@@ -175,7 +175,7 @@ function render(){persist();const airportInfo=v=>{const raw=(v||'').trim();const
   n.splice(nextStreetIndex+1,0,cafeStop);
  }
 }$('dayTitle').textContent=new Date(selected+'T12:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});$('countPill').textContent=n.length+' places';$('stops').innerHTML='';$('listView').innerHTML='';
-if(!n.length){$('stops').innerHTML='<div class="empty">아직 등록된 일정이 없어요.<br>왼쪽에서 말하거나 장소를 추가해 보세요.</div>'}n.forEach((s,i)=>{let el=document.createElement('div');el.className='stop';const cat=categoryForStop(s);el.innerHTML=`<button class="num map-focus" type="button" aria-label="지도에서 ${i+1}번 위치 보기">${i+1}</button><div><div class="category-tag"><span class="tag-icon">${cat.icon}</span>${cat.label}</div><strong>${esc(cleanStopName(s))}</strong><small>${s.time||'시간 미정'} ${s.note?' · '+esc(s.note):''}</small><div class="place-links"><a class="map-open" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQueryForStop(s)||s.name)}">Google Maps 열기 ↗</a></div></div><div class="stop-actions"><button class="icon edit-stop" aria-label="수정">✎</button></div>`;el.querySelector('.map-focus').onclick=()=>focusMapStop(s.id);el.querySelector('.edit-stop').onclick=()=>openEdit(s.id);$('stops').append(el);let li=document.createElement('div');li.className='stop';li.innerHTML=`<button class="num map-focus" type="button" aria-label="지도에서 ${i+1}번 위치 보기">${i+1}</button><div><strong>${esc(cleanStopName(s))}</strong><small>${s.time||'시간 미정'}</small><div class="place-links"><a class="map-open" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQueryForStop(s)||s.name)}">Google Maps 열기 ↗</a></div></div>`;$('listView').append(li);li.querySelector('.map-focus').onclick=()=>focusMapStop(s.id)});
+if(!n.length){$('stops').innerHTML='<div class="empty">아직 등록된 일정이 없어요.<br>왼쪽에서 말하거나 장소를 추가해 보세요.</div>'}n.forEach((s,i)=>{let el=document.createElement('div');el.className='stop';const cat=categoryForStop(s);el.innerHTML=`<button class="num map-focus" type="button" aria-label="지도에서 ${i+1}번 위치 보기">${i+1}</button><div><div class="category-tag"><span class="tag-icon">${cat.icon}</span>${cat.label}</div><strong>${esc(cleanStopName(s))}</strong><small>${s.time||'시간 미정'} ${s.note?' · '+esc(s.note):''}</small>${s.placeInfo?'<small class="place-meta">'+esc([s.placeInfo.hours&&('운영시간 '+s.placeInfo.hours),s.placeInfo.phone&&('전화 '+s.placeInfo.phone)].filter(Boolean).join(' · ')||'공개 운영정보 없음')+'</small>':''}<div class="place-links"><a class="map-open" target="_blank" rel="noopener" href="${esc(s.mapUrl||("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(mapQueryForStop(s)||s.name)))}">Google Maps 열기 ↗</a></div></div><div class="stop-actions"><button class="icon edit-stop" aria-label="수정">✎</button></div>`;el.querySelector('.map-focus').onclick=()=>focusMapStop(s.id);el.querySelector('.edit-stop').onclick=()=>openEdit(s.id);$('stops').append(el);let li=document.createElement('div');li.className='stop';li.innerHTML=`<button class="num map-focus" type="button" aria-label="지도에서 ${i+1}번 위치 보기">${i+1}</button><div><strong>${esc(cleanStopName(s))}</strong><small>${s.time||'시간 미정'}</small><div class="place-links"><a class="map-open" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQueryForStop(s)||s.name)}">Google Maps 열기 ↗</a></div></div>`;$('listView').append(li);li.querySelector('.map-focus').onclick=()=>focusMapStop(s.id)});
 const legs=document.getElementById('travelLegs');if(legs)legs.remove();
 const routeBox=document.createElement('section');routeBox.id='travelLegs';routeBox.className='travel-legs';
 const firstDay=selected===state.start,lastDay=selected===state.end;
@@ -220,6 +220,7 @@ $('mapView').classList.toggle('hidden',currentTab!=='map');$('listView').classLi
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function initMap(){if(!window.L)return;if(!map){map=L.map('map').setView([-37.8136,144.9631],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map)}map.invalidateSize()}
 function mapQueryForStop(s){
+ if(s.geoQuery)return s.geoQuery;
  const name=cleanStopName(s);
  if(/St Kilda Esplanade Sunday Market/i.test(name))return 'St Kilda Esplanade Market, Upper Esplanade, St Kilda, Melbourne, Victoria, Australia';
  if(/멜버른 공항 도착|공항 도착|Melbourne Airport/i.test(name))return 'Melbourne Airport, Victoria, Australia';
@@ -252,6 +253,54 @@ async function geocode(query){
  geoCache[query]=point;localStorage.setItem(geoCacheKey,JSON.stringify(geoCache));
  return point;
 }
+function parseGoogleMapsLink(raw){
+ const text=String(raw||'').trim();if(!text)return null;
+ let u;try{u=new URL(text)}catch{return null}
+ const host=u.hostname.toLowerCase();
+ if(!/(^|\.)google\.com$|(^|\.)maps\.app\.goo\.gl$|(^|\.)goo\.gl$/.test(host))return null;
+ if(host==='maps.app.goo.gl'||host==='goo.gl')return {short:true,url:text};
+ const decode=v=>{try{return decodeURIComponent(String(v).replace(/\+/g,' '))}catch{return v}};
+ let query=u.searchParams.get('query')||u.searchParams.get('q')||u.searchParams.get('destination')||'';
+ if(!query){const m=u.pathname.match(/\/maps\/(?:place|search)\/([^/]+)/i);if(m)query=decode(m[1].replace(/\+/g,' '))}
+ let lat=null,lon=null;
+ const coord=u.href.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)||u.href.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+ if(coord){lat=Number(coord[1]);lon=Number(coord[2])}
+ if(!query&&lat===null){const ll=u.searchParams.get('ll');if(ll){const p=ll.split(',');lat=Number(p[0]);lon=Number(p[1])}}
+ return {url:text,query:decode(query).replace(/\+/g,' ').trim(),lat,lon};
+}
+let pendingImportedPlace=null;
+async function importGoogleMapsPlace(){
+ const raw=$('mapPlaceUrl').value.trim(),parsed=parseGoogleMapsLink(raw);
+ $('mapPlacePreview').innerHTML='';$('mapPlaceActions').classList.add('hidden');pendingImportedPlace=null;
+ if(!parsed){toast('Google Maps 링크 형식을 확인해 주세요');return}
+ if(parsed.short){$('mapPlacePreview').textContent='이 링크는 단축 주소라 브라우저에서 원본 장소 정보를 직접 읽을 수 없어요. Google Maps에서 장소 이름이 보이는 전체 공유 링크를 복사해 주세요.';return}
+ let best=null;
+ try{
+  if(parsed.query){
+   const url='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&namedetails=1&limit=5&q='+encodeURIComponent(parsed.query);
+   const res=await fetch(url,{headers:{'Accept-Language':'en'}});if(!res.ok)throw new Error('검색 서버 응답 오류');
+   const rows=await res.json();best=rows.find(x=>/Melbourne|Victoria|Australia/i.test(x.display_name||''))||rows[0]||null;
+  }else if(Number.isFinite(parsed.lat)&&Number.isFinite(parsed.lon)){
+   const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&extratags=1&namedetails=1&lat='+parsed.lat+'&lon='+parsed.lon;
+   const res=await fetch(url,{headers:{'Accept-Language':'en'}});if(!res.ok)throw new Error('검색 서버 응답 오류');best=await res.json();
+  }
+ }catch(e){$('mapPlacePreview').textContent='장소 정보를 조회하지 못했어요. 잠시 후 다시 시도하거나 장소 이름을 직접 입력해 주세요.';return}
+ if(!best){$('mapPlacePreview').textContent='공개 지도 데이터에서 장소를 찾지 못했어요. 링크에 장소명이 포함된 전체 URL인지 확인해 주세요.';return}
+ const tags=best.extratags||{},named=best.namedetails||{};
+ const name=named.name||best.name||parsed.query||'이름 미확인 장소';
+ const address=best.display_name||'주소 정보 없음',hours=tags.opening_hours||'';
+ const phone=tags.phone||tags['contact:phone']||'',website=tags.website||tags['contact:website']||'';
+ const category=tags.amenity||tags.tourism||tags.shop||tags.leisure||best.type||'';
+ pendingImportedPlace={name,date:$('mapPlaceDate').value||selected,time:$('mapPlaceTime').value||'',note:'',mapUrl:parsed.url,geoQuery:address,lat:Number(best.lat),lon:Number(best.lon),placeInfo:{address,hours,phone,website,category,source:'OpenStreetMap'}};
+ const details=[address,hours?'운영시간 '+hours:'운영시간 정보 없음',category?'분류 '+category:'',phone?'전화 '+phone:'',website?'웹사이트 '+website:''].filter(Boolean);
+ const preview=document.createElement('div');preview.className='place-import-preview';
+ const strong=document.createElement('strong');strong.textContent=name;
+ const small=document.createElement('small');small.textContent=details.join(' · ');
+ preview.append(strong,small);$('mapPlacePreview').append(preview);$('mapPlaceActions').classList.remove('hidden');
+}
+$('importMapPlace').onclick=importGoogleMapsPlace;
+$('addImportedPlace').onclick=()=>{if(!pendingImportedPlace)return;const p=pendingImportedPlace;if(state.stops.some(x=>x.name.trim().toLowerCase()===p.name.trim().toLowerCase())){toast('이미 일정에 등록된 장소예요');return}state.stops.push({id:crypto.randomUUID(),...p});selected=p.date;persist();render();$('mapPlaceUrl').value='';$('mapPlacePreview').innerHTML='';$('mapPlaceActions').classList.add('hidden');pendingImportedPlace=null;toast('장소 정보와 함께 일정에 추가했어요')};
+$('saveImportedWishlist').onclick=()=>{if(!pendingImportedPlace)return;const p=pendingImportedPlace;if((state.wishlist||[]).some(x=>x.name.trim().toLowerCase()===p.name.trim().toLowerCase())){toast('이미 보류 후보에 있어요');return}state.wishlist=state.wishlist||[];state.wishlist.push({...p,note:p.placeInfo?.hours?'운영시간 '+p.placeInfo.hours:'지도 링크에서 가져온 장소'});persist();render();$('mapPlaceUrl').value='';$('mapPlacePreview').innerHTML='';$('mapPlaceActions').classList.add('hidden');pendingImportedPlace=null;toast('보류 후보에 저장했어요')};
 async function drawMap(items){
  if(!map)return;
  markers.forEach(m=>map.removeLayer(m));markers=[];
