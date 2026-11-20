@@ -152,8 +152,11 @@ async function drawMap(items){
    const s=items[i],query=mapQueryForStop(s);
    if(!query)continue;
    let p=null;
-   if(Number.isFinite(+s.lat)&&Number.isFinite(+s.lon)&&+s.lat!==0&&+s.lon!==0)p={lat:+s.lat,lon:+s.lon};
-   else{try{p=await geocode(query);if(p){s.lat=p.lat;s.lon=p.lon}}catch(e){}}
+   if(s.geoQuery===query&&Number.isFinite(+s.lat)&&Number.isFinite(+s.lon)&&+s.lat!==0&&+s.lon!==0)p={lat:+s.lat,lon:+s.lon};
+   else{
+     try{p=await geocode(query);if(p){s.lat=p.lat;s.lon=p.lon;s.geoQuery=query}}
+     catch(e){if(Number.isFinite(+s.lat)&&Number.isFinite(+s.lon))p={lat:+s.lat,lon:+s.lon}}
+   }
    if(p)points.push({...p,s,name:s.name,query,kind:'place',order:points.length+1});
  }
  const addMarker=(p,html,cls,popup)=>{
