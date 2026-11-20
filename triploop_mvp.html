@@ -75,7 +75,7 @@ const legs=document.getElementById('travelLegs');if(legs)legs.remove();
 const routeBox=document.createElement('section');routeBox.id='travelLegs';routeBox.className='travel-legs';
 const firstDay=selected===state.start,lastDay=selected===state.end;
 const outbound=state.outboundFlight||{},inbound=state.returnFlight||{};
-const airportName=v=>(v||'').replace(/\\s*[—-]\\s*Terminal\\s*/i,', Terminal ');
+const airportName=v=>(v||'').replace(/\s*[—-]\s*Terminal\s*/i,', Terminal ');
 const homeName=state.stayName||'숙소',homeAddress=state.accommodation||'';
 const homeNode={name:homeName,query:homeAddress,kind:'home'};
 const arrivalNode={name:airportName(outbound.to)||'멜버른 공항',query:airportName(outbound.to)||'Melbourne Airport, VIC, Australia',kind:'airport'};
