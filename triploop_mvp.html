@@ -281,15 +281,15 @@ async function geocode(query){
  return point;
 }
 async function resolveGoogleMapsShortLink(raw){
- const endpoint='https://r.jina.ai/http://'+String(raw).trim().replace(/^https?:\\/\\//i,'');
+ const endpoint='https://r.jina.ai/http://'+String(raw).trim().replace(/^https?:\/\//i,'');
  const response=await fetch(endpoint,{headers:{'Accept':'text/plain'}});
  if(!response.ok)throw new Error('short-link-resolve-failed');
  const body=await response.text();
- const title=(body.match(/^Title:\\s*(.+)$/mi)||[])[1]?.trim()||'';
- let query=title.replace(/^Google Maps\\s*[-:]\\s*/i,'').replace(/\\s*[-:]\\s*Google Maps$/i,'').trim();
+ const title=(body.match(/^Title:\s*(.+)$/mi)||[])[1]?.trim()||'';
+ let query=title.replace(/^Google Maps\s*[-:]\s*/i,'').replace(/\s*[-:]\s*Google Maps$/i,'').trim();
  if(!query||/^Google Maps$/i.test(query)){
-  const candidate=(body.match(/(?:place|search)\\/([^\\n?]+)/i)||[])[1];
-  if(candidate)try{query=decodeURIComponent(candidate.replace(/\\+/g,' '))}catch{}
+  const candidate=(body.match(/(?:place|search)\/([^\n?]+)/i)||[])[1];
+  if(candidate)try{query=decodeURIComponent(candidate.replace(/\+/g,' '))}catch{}
  }
  if(!query)throw new Error('place-name-not-found');
  return {url:raw,query,shortResolved:true};
