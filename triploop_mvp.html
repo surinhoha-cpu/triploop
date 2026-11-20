@@ -130,11 +130,12 @@ function toast(s){$('toast').textContent=s;$('toast').style.display='block';setT
 function days(){let a=new Date(state.start+'T12:00:00'),b=new Date(state.end+'T12:00:00'),out=[];if(isNaN(a)||isNaN(b)||b<a)return [state.start];for(let d=new Date(a);d<=b&&out.length<60;d.setDate(d.getDate()+1))out.push(iso(d));return out}
 function cleanStopName(s){return String(s?.name||'').replace(/^(?:아침|오전|오후|점심|저녁)\\s*[:：-]\\s*/,'').trim()}
 function extractTime(text){
- const re=/(오전|오후|아침|저녁)?\\s*(\\d{1,2})(?::(\\d{2})|시(?:\\s*(\\d{1,2})분?)?|\\s*(am|pm))?/i;
+ const re=/(오전|오후|아침|저녁)?\\s*(\\d{1,2})(?::(\\d{2}))?\\s*(시(?:\\s*(\\d{1,2})분?)?|am|pm)?/i;
  const m=text.match(re);if(!m)return null;
- const hasClock=!!(m[3]||m[0].includes('시')||m[5]||m[1]);if(!hasClock)return null;
- let h=Number(m[2]),min=Number(m[3]||m[4]||0);
- if(m[5]){if(m[5].toLowerCase()==='pm'&&h<12)h+=12;if(m[5].toLowerCase()==='am'&&h===12)h=0}
+ const hasClock=!!(m[3]||m[4]||m[1]);if(!hasClock)return null;
+ let h=Number(m[2]),min=Number(m[3]||m[5]||0);
+ if(m[4]&&/pm/i.test(m[4])){if(h<12)h+=12}
+ if(m[4]&&/am/i.test(m[4])&&h===12)h=0
  if(/오후|저녁/i.test(m[1]||'')&&h<12)h+=12;
  if(/오전|아침/i.test(m[1]||'')&&h===12)h=0;
  if(h>23||min>59)return null;
