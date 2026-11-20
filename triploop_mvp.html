@@ -109,7 +109,8 @@ if(firstDay){
  routeIntro+=step('✈',arrivalNode.name,outbound.arrive?('도착 예정 '+outbound.arrive):'도착 공항','airport');
  routeIntro+=step('⌂',homeName,homeAddress?'공항에서 숙소로 이동 · 체크인':'공항 도착 후 숙소로 이동');
 }else if(lastDay){
- routeIntro+=step('⌂',homeName,'10:30 체크아웃 및 공항 이동');
+ const checkoutStop=visibleStops.find(x=>/(체크아웃 및 공항 이동|멜버른 출발)/.test(x.name||''));
+ routeIntro+=step('⌂',homeName,(checkoutStop?.time||'오전')+' 체크아웃 및 공항 이동');
  routeIntro+=step('✈',departureNode.name,(inbound.depart?'귀국편 '+inbound.depart+' 출발':'귀국 항공편'),'airport');
 }else{
  routeIntro+=step('⌂',homeName,homeAddress?'오늘의 출발 장소':'숙소 주소 미입력');
