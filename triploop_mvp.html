@@ -13,7 +13,7 @@
 </head>
 <body>
 <div class="app">
- <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 10</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
+ <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 11</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
  <div class="layout">
   <aside class="panel stack">
    <div><h2 class="section-title">일정 추가</h2><p class="hint">여행 정보를 바꾸려면 상단의 ‘여행 정보 수정’을 눌러주세요.</p></div>
@@ -109,45 +109,74 @@ if(routeNodes.length>1)$('stops').after(routeBox);
 $('mapView').classList.toggle('hidden',currentTab!=='map');$('listView').classList.toggle('hidden',currentTab!=='list');$('wishlistItems').innerHTML='';(state.wishlist||[]).forEach((w,i)=>{let e=document.createElement('div');e.className='row';e.style.cssText='justify-content:space-between;gap:8px;font-size:13px;padding:9px 0;border-bottom:1px solid var(--line)';let info=document.createElement('div');info.style.flex='1';let name=document.createElement('strong');name.textContent=w.name;let note=document.createElement('div');note.className='hint';note.textContent=w.note||'';info.append(name,note);let addBtn=document.createElement('button');addBtn.className='ghost';addBtn.textContent='일정에 추가';addBtn.onclick=()=>{const exists=state.stops.some(x=>x.name.trim().toLowerCase()===w.name.trim().toLowerCase());if(exists){toast('이미 일정에 추가된 장소예요');return}state.stops.push({id:crypto.randomUUID(),name:w.name,date:selected,time:'',note:w.note||''});state.wishlist.splice(i,1);persist();render();toast(selected+' 일정에 '+w.name+'을(를) 추가했어요')};e.append(info,addBtn);$('wishlistItems').append(e)});setTimeout(()=>{initMap();drawMap(n)},80)}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function initMap(){if(!window.L)return;if(!map){map=L.map('map').setView([-37.8136,144.9631],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map)}map.invalidateSize()}
-function mapQueryForStop(s){const name=(s.name||'').trim();if(/멜버른 공항 도착|멜버른 출발|공항 도착|공항 출발/.test(name))return 'Melbourne Airport, VIC, Australia';if(/공항에서 숙소로 이동|숙소로 이동 및 체크인/.test(name))return state.accommodation||'70 Carlisle St, St Kilda VIC 3182, Australia';if(/St Kilda 주변 산책/.test(name))return 'St Kilda, VIC, Australia';if(/CBD 골목과 쇼핑 거리 산책/.test(name))return 'Melbourne CBD, VIC, Australia';if(/ 또는 /.test(name)||/주변 산책|주변 산책/.test(name))return '';return name?name+', Melbourne, VIC, Australia':''}
-async function geocode(query){if(!query)return null;let url='https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(query);let r=await fetch(url);let j=await r.json();return j[0]?{lat:+j[0].lat,lon:+j[0].lon}:null}
+function mapQueryForStop(s){
+ const name=(s.name||'').trim();
+ if(/멜버른 공항 도착|공항 도착|Melbourne Airport/i.test(name))return 'Melbourne Airport, Victoria, Australia';
+ if(/공항에서 숙소로 이동|숙소로 이동 및 체크인/.test(name))return state.accommodation||'70 Carlisle St, St Kilda VIC 3182, Australia';
+ if(/St Kilda 주변 산책/.test(name))return 'St Kilda, Victoria, Australia';
+ if(/CBD 골목과 쇼핑 거리 산책/.test(name))return 'Melbourne CBD, Victoria, Australia';
+ if(/ 또는 /.test(name)||/주변 산책/.test(name))return '';
+ return name?name+', Melbourne, Victoria, Australia':'';
+}
+async function geocode(query){
+ if(!query)return null;
+ const url='https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=au&limit=5&q='+encodeURIComponent(query);
+ const r=await fetch(url,{headers:{'Accept-Language':'en'}});
+ if(!r.ok)throw new Error('장소 검색 실패');
+ const rows=await r.json();
+ if(!rows.length)return null;
+ const best=rows.find(x=>/Melbourne|St Kilda|Victoria/i.test(x.display_name||''))||rows[0];
+ return {lat:+best.lat,lon:+best.lon,displayName:best.display_name||query};
+}
 async function drawMap(items){
  if(!map)return;
  markers.forEach(m=>map.removeLayer(m));markers=[];
  if(routeLayer){map.removeLayer(routeLayer);routeLayer=null}
- let pts=[];
+ const points=[];
+ const firstDay=selected===state.start;
+ const lastDay=selected===state.end;
  const lodgingName=state.accommodation?.trim();
- let lodgingPoint=null;
- if(lodgingName){try{let p=await geocode(lodgingName);if(p)lodgingPoint={s:{name:'숙소',time:'매일 출발 · 귀가'},...p}}catch(e){}}
- for(let s of items){
-   const query=mapQueryForStop(s);if(!query)continue;
-   if(s.lat&&s.lon)pts.push({s,lat:s.lat,lon:s.lon,query,order:items.indexOf(s)+1});
-   else{try{let p=await geocode(query);if(p){s.lat=p.lat;s.lon=p.lon;pts.push({s,...p,query,order:items.indexOf(s)+1})}}catch(e){}}
+ let lodgingPoint=null,airportPoint=null;
+ if(lodgingName){
+   try{const p=await geocode(lodgingName);if(p)lodgingPoint={...p,name:state.stayName||'숙소',query:lodgingName,kind:'home'}}catch(e){}
  }
+ // The flight origin is shown in the trip details, not as a road stop on the Melbourne map.
+ // On day one, the map starts at Melbourne Airport after landing.
+ if(firstDay&&state.outboundFlight?.to){
+   try{const p=await geocode(state.outboundFlight.to+', Melbourne, Victoria, Australia');if(p)airportPoint={...p,name:state.outboundFlight.to,query:state.outboundFlight.to,kind:'airport'}}catch(e){}
+ }
+ if(lastDay&&state.returnFlight?.from){
+   try{const p=await geocode(state.returnFlight.from+', Melbourne, Victoria, Australia');if(p)airportPoint={...p,name:state.returnFlight.from,query:state.returnFlight.from,kind:'airport'}}catch(e){}
+ }
+ for(let i=0;i<items.length;i++){
+   const s=items[i],query=mapQueryForStop(s);
+   if(!query)continue;
+   let p=null;
+   if(Number.isFinite(+s.lat)&&Number.isFinite(+s.lon)&&+s.lat!==0&&+s.lon!==0)p={lat:+s.lat,lon:+s.lon};
+   else{try{p=await geocode(query);if(p){s.lat=p.lat;s.lon=p.lon}}catch(e){}}
+   if(p)points.push({...p,s,name:s.name,query,kind:'place',order:points.length+1});
+ }
+ const addMarker=(p,html,cls,popup)=>{
+   const icon=L.divIcon({className:'',html,iconSize:cls==='number'? [34,34]:[40,40],iconAnchor:cls==='number'?[17,17]:[20,20]});
+   const marker=L.marker([p.lat,p.lon],{icon}).addTo(map).bindPopup(popup);
+   marker.on('click',()=>{const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.query||p.name);window.open(url,'_blank','noopener')});
+   markers.push(marker);
+ };
+ if(airportPoint&&firstDay)addMarker(airportPoint,'<div class="home-pin">✈</div>','airport','<b>✈ 멜버른 공항 도착</b><br>'+esc(airportPoint.name));
+ if(lodgingPoint)addMarker(lodgingPoint,'<div class="home-pin">⌂</div>','home','<b>🏠 숙소</b><br>'+esc(lodgingName));
+ points.forEach(p=>addMarker(p,'<div class="number-pin">'+p.order+'</div>','number','<b>'+p.order+'. '+esc(p.name)+'</b><br>'+(p.s.time||'')));
+ const route=[];
+ if(firstDay&&airportPoint)route.push(airportPoint);
+ if(lodgingPoint)route.push(lodgingPoint);
+ route.push(...points);
+ if(lastDay&&airportPoint)route.push(airportPoint);
+ else if(!firstDay&&lodgingPoint)route.push(lodgingPoint);
+ if(route.length>1){
+   routeLayer=L.polyline(route.map(p=>[p.lat,p.lon]),{color:'#526b5b',weight:4,opacity:.8,dashArray:'8 7'}).addTo(map);
+   map.fitBounds(L.latLngBounds(route.map(p=>[p.lat,p.lon])),{padding:[30,30],maxZoom:15});
+ }else if(route.length===1)map.setView([route[0].lat,route[0].lon],14);
+ else map.setView([-37.867,144.98],13);
  persist();
- if(selected===state.start && state.outboundFlight?.to){
-   try{
-     const airportPoint=await geocode(state.outboundFlight.to+', Melbourne, Australia');
-     if(airportPoint){
-       const airportIcon=L.divIcon({className:'',html:'<div class="home-pin">✈</div>',iconSize:[36,36],iconAnchor:[18,18]});
-       const airportMarker=L.marker([airportPoint.lat,airportPoint.lon],{icon:airportIcon}).addTo(map).bindPopup('<b>✈ 도착 공항</b><br>'+esc(state.outboundFlight.to));
-       airportMarker.on('click',()=>window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(state.outboundFlight.to),'_blank','noopener'));
-       markers.push(airportMarker);
-     }
-   }catch(e){}
- }
- if(lodgingPoint){
-   const homeIcon=L.divIcon({className:'',html:'<div class="home-pin">⌂</div>',iconSize:[36,36],iconAnchor:[18,18]});let m=L.marker([lodgingPoint.lat,lodgingPoint.lon],{icon:homeIcon}).addTo(map).bindPopup(`<b>🏠 숙소</b><br>${esc(lodgingName)}`);m.on('click',()=>window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(lodgingName),'_blank','noopener'));
-   markers.push(m);
- }
- pts.forEach(p=>{const icon=L.divIcon({className:'',html:'<div class="number-pin">'+p.order+'</div>',iconSize:[30,30],iconAnchor:[15,15]});const m=L.marker([p.lat,p.lon],{icon}).addTo(map).bindPopup('<b>'+p.order+'. '+esc(p.s.name)+'</b><br>'+(p.s.time||''));m.on('click',()=>{const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+','+p.lon);window.open(url,'_blank','noopener')});markers.push(m)});
- let routePts=lodgingPoint&&pts.length?[lodgingPoint,...pts,lodgingPoint]:pts;
- if(routePts.length===1)map.setView([routePts[0].lat,routePts[0].lon],14);
- else if(routePts.length>1){
-   let bounds=L.latLngBounds(routePts.map(p=>[p.lat,p.lon]));map.fitBounds(bounds,{padding:[28,28]});
-   // Walking and transit routing is opened per leg in Google Maps; do not draw a misleading driving route here.
- }else if(lodgingPoint)map.setView([lodgingPoint.lat,lodgingPoint.lon],14);
- else map.setView([-37.8136,144.9631],12);
 }
 function add(name,date,time,note=''){if(!name.trim())return;state.stops.push({id:crypto.randomUUID(),name:name.trim(),date:date||selected,time:time||'',note});persist();selected=date||selected;render()}
 $('editTripBtn').onclick=()=> $('tripSettingsModal').classList.add('open');$('cancelTripSettings').onclick=()=> $('tripSettingsModal').classList.remove('open');$('saveTrip').onclick=()=>{if($('endDate').value<$('startDate').value){toast('종료일은 시작일보다 빠를 수 없어요');return}persist();render();$('tripSettingsModal').classList.remove('open');toast('여행 정보가 저장됐어요')};
