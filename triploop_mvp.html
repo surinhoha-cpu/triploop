@@ -56,7 +56,28 @@
  .dialog h4.section-title{padding-top:12px;margin-top:8px!important;border-top:1px solid var(--line);}
  .dialog .row:has(#cancelTripSettings){display:flex;flex-wrap:wrap;justify-content:flex-end;}
 }
-.edit-stop-dialog{position:relative;padding:18px;width:min(480px,100%)}.edit-stop-fields{gap:11px}.edit-field{display:grid;gap:5px;min-width:0}.edit-field>label{font-size:13px;font-weight:650;color:var(--muted)}.edit-stop-dialog .field{min-height:43px;padding:10px 12px;font-size:15px;width:100%;box-sizing:border-box}.edit-map-link textarea.field{min-height:68px;resize:vertical}.edit-map-link button{justify-self:start;padding:9px 13px}.edit-stop-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px}.edit-stop-actions button{min-height:42px}.edit-stop-dialog .dialog-heading{margin-bottom:13px}@media(max-width:800px){.edit-stop-dialog{padding:16px}.edit-stop-fields{gap:9px}.edit-field>label{font-size:12px}.edit-stop-dialog .field{min-height:41px;font-size:14px}}</style>
+.edit-stop-dialog{position:relative;padding:18px;width:min(480px,100%)}.edit-stop-fields{gap:11px}.edit-field{display:grid;gap:5px;min-width:0}.edit-field>label{font-size:13px;font-weight:650;color:var(--muted)}.edit-stop-dialog .field{min-height:43px;padding:10px 12px;font-size:15px;width:100%;box-sizing:border-box}.edit-map-link textarea.field{min-height:68px;resize:vertical}.edit-map-link button{justify-self:start;padding:9px 13px}.edit-stop-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px}.edit-stop-actions button{min-height:42px}.edit-stop-dialog .dialog-heading{margin-bottom:13px}@media(max-width:800px){.edit-stop-dialog{padding:16px}.edit-stop-fields{gap:9px}.edit-field>label{font-size:12px}.edit-stop-dialog .field{min-height:41px;font-size:14px}}
+/* Revision 24: prevent mobile editor overflow and keep action buttons compact. */
+.edit-stop-dialog{width:min(480px,100%);max-width:100%;min-width:0;overflow-x:hidden;padding:18px}
+.edit-stop-dialog,.edit-stop-dialog *{box-sizing:border-box}
+.edit-stop-fields,.edit-field{width:100%;min-width:0;max-width:100%}
+.edit-stop-dialog input.field,.edit-stop-dialog textarea.field{display:block;width:100%;min-width:0;max-width:100%;font-size:15px;padding:10px 12px}
+.edit-stop-dialog input[type="time"],.edit-stop-dialog input[type="date"]{min-width:0;width:100%;max-width:100%;-webkit-appearance:none;appearance:none}
+.edit-stop-dialog .edit-map-link textarea{min-height:58px}
+.edit-stop-dialog .edit-map-link button{width:auto;max-width:100%;min-height:38px;padding:8px 12px;font-size:13px;white-space:normal}
+.edit-stop-dialog .edit-stop-actions{display:flex!important;flex-direction:row;align-items:center;justify-content:flex-end;gap:8px;width:100%;min-width:0}
+.edit-stop-dialog .edit-stop-actions>span{flex:1 1 auto!important;min-width:0}
+.edit-stop-dialog .edit-stop-actions button{flex:0 0 auto;width:auto;min-width:0;min-height:38px;padding:8px 14px;font-size:14px;white-space:nowrap}
+.edit-stop-dialog #deleteStop{margin-right:auto}
+@media(max-width:600px){
+ .edit-stop-dialog{padding:16px 14px;width:100%;max-width:100%}
+ .edit-stop-fields{gap:9px}
+ .edit-stop-dialog input.field,.edit-stop-dialog textarea.field{font-size:14px;padding:9px 10px}
+ .edit-stop-dialog input[type="time"],.edit-stop-dialog input[type="date"]{font-size:14px}
+ .edit-stop-dialog .edit-stop-actions{display:flex!important;flex-wrap:nowrap;gap:7px}
+ .edit-stop-dialog .edit-stop-actions button{padding:8px 12px;font-size:13px}
+}
+</style>
 </head>
 <body>
 <div class="app">
