@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f7f4"><title>Triploop — 여행 플래너</title>
+<link rel="preconnect" href="https://unpkg.com"><link rel="preconnect" href="https://tile.openstreetmap.org">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#f7f7f4;--panel:#fff;--ink:#22251f;--muted:#777c72;--line:#e8e9e3;--accent:#526b5b;--soft:#edf1ec;--danger:#a24b43}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:10px 14px;background:var(--accent);color:white;font-weight:600}button.ghost{background:var(--soft);color:var(--ink)}button.icon{padding:8px 10px;background:transparent;color:var(--muted);font-size:18px}button:disabled{opacity:.45;cursor:not-allowed}.app{max-width:1160px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.brand{font-weight:800;font-size:22px;letter-spacing:-.8px}.brand span{color:var(--accent)}.sub{color:var(--muted);font-size:13px}.layout{display:grid;grid-template-columns:330px 1fr;gap:18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0}.section-title{font-size:15px;font-weight:750;margin:0 0 12px}.field{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px 12px;color:var(--ink);outline:none}.field:focus{border-color:#8ca291}.stack{display:grid;gap:9px}.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}.row .field{flex:1}.trip-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}.trip-name{font-size:24px;font-weight:800;letter-spacing:-.7px}.date-strip{display:flex;gap:7px;overflow:auto;padding:2px 0 12px}.day{flex:0 0 auto;min-width:74px;background:#fff;border:1px solid var(--line);color:var(--ink);padding:9px;border-radius:13px;text-align:left}.day.active{background:var(--soft);border-color:#9bad9d}.day b{display:block;font-size:17px}.day small{color:var(--muted)}.tabs{display:flex;gap:7px;margin:4px 0 14px}.tab{background:transparent;color:var(--muted);padding:8px 12px}.tab.active{background:var(--soft);color:var(--ink)}.map{height:390px;border-radius:14px;overflow:hidden;background:#e8ebe5;border:1px solid var(--line)}.empty{padding:28px 12px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}.stop{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.num{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center;color:var(--accent);font-weight:750}.stop strong{display:block}.stop small{color:var(--muted)}.stop-actions{display:flex;gap:2px}.pill{font-size:11px;color:var(--accent);background:var(--soft);border-radius:20px;padding:3px 8px}.muted{color:var(--muted)}.voice{display:flex;gap:8px;align-items:center}.voice button{white-space:nowrap}.voice button.listening{background:var(--danger)}.hint{font-size:12px;color:var(--muted)}.modal{position:fixed;inset:0;background:#17201866;display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}.modal.open{display:flex}.dialog{width:min(520px,100%);background:white;border-radius:18px;padding:20px}.dialog h3{margin:0 0 14px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#242923;color:white;padding:10px 16px;border-radius:12px;display:none;z-index:2000}.footer{font-size:12px;color:var(--muted);margin-top:14px}.rightcol{display:grid;gap:16px}.hidden{display:none!important}
+@media(max-width:800px){.app{padding:14px}.layout{grid-template-columns:1fr}.map{height:310px}.trip-name{font-size:21px}.top{margin-bottom:16px}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<div class="app">
+ <header class="top"><div><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div></div><button class="ghost" id="exportBtn">내보내기 ↓</button></header>
+ <div class="layout">
+  <aside class="panel stack">
+   <div><h2 class="section-title">여행 설정</h2><input id="tripTitle" class="field" value="멜버른 여행" aria-label="여행 이름"></div>
+   <div class="row"><div style="flex:1"><label class="hint">시작일</label><input id="startDate" class="field" type="date"></div><div style="flex:1"><label class="hint">종료일</label><input id="endDate" class="field" type="date"></div></div>\n   <div><label class="hint">숙소 주소 · 매일 동선의 출발/도착점</label><input id="accommodation" class="field" placeholder="숙소 주소를 입력하세요"></div>
+   <button id="saveTrip" class="ghost">여행 정보 저장</button>
+   <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:7px 0">
+   <div><h2 class="section-title">말하거나 입력해서 일정 추가</h2><textarea id="voiceText" class="field" rows="5" placeholder="여행 전체 일정을 그대로 붙여넣으세요. 날짜 제목(예: 11월 21일 토요일)과 글머리표를 기준으로 날짜별로 자동 분류합니다."></textarea></div>
+   <div class="voice"><button id="micBtn">🎙 음성 입력</button><button id="parseBtn" style="flex:1">일정 정리하기</button></div>
+   <div class="hint">여행 전체 일정도 한 번에 붙여넣을 수 있어요. 날짜 제목과 목록을 읽어 날짜별로 나눕니다. 음성 인식은 브라우저 지원 여부에 따라 달라집니다.</div>
+   <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:7px 0">
+   <div><h2 class="section-title">장소 직접 추가</h2><input id="placeName" class="field" placeholder="장소 이름 (예: NGV)"><div class="row" style="margin-top:8px"><input id="placeDate" class="field" type="date"><input id="placeTime" class="field" type="time" value="10:00"></div><button id="addPlace" class="ghost" style="width:100%;margin-top:8px">+ 장소 추가</button></div>
+   <div id="wishlistBox" class="stack" style="margin-top:4px"><h2 class="section-title">보류 / 추가 후보</h2><div id="wishlistItems" class="stack"></div></div>
+   <div class="footer">일정은 이 기기의 브라우저에 자동 저장됩니다. 지도·장소 검색에는 인터넷 연결이 필요합니다.</div>
+  </aside>
+  <main class="rightcol">
+   <section class="panel">
+    <div class="trip-head"><div><div class="sub" id="tripRange">여행 일정</div><div class="trip-name" id="dayTitle">날짜를 선택하세요</div></div><span class="pill" id="countPill">0 places</span></div>
+    <div class="date-strip" id="dateStrip"></div>
+    <div class="tabs"><button class="tab active" data-tab="map">지도</button><button class="tab" data-tab="list">일정 목록</button></div>
+    <div id="mapView"><div id="map" class="map"></div><div class="hint" style="margin-top:8px">장소 핀을 누르면 장소 이름을 볼 수 있어요. 경로는 도보 기준이며 도로 상황에 따라 달라질 수 있습니다.</div></div>
+    <div id="listView" class="hidden"></div>
+   </section>
+   <section class="panel"><div class="row" style="justify-content:space-between"><h2 class="section-title" style="margin:0">선택한 날짜의 일정</h2><button class="ghost" id="optimizeBtn">동선 정리 ↗</button></div><div id="stops"></div></section>
+  </main>
+ </div>
+</div>
+<div class="modal" id="editModal"><div class="dialog"><h3>일정 수정</h3><div class="stack"><input id="editName" class="field"><input id="editTime" class="field" type="time"><input id="editDate" class="field" type="date"><input id="editNote" class="field" placeholder="메모 (선택)"><div class="row"><button id="deleteStop" class="ghost" style="color:var(--danger)">삭제</button><span style="flex:1"></span><button id="cancelEdit" class="ghost">취소</button><button id="saveEdit">저장</button></div></div></div></div>
+<div class="toast" id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const KEY='triploop_mvp_v1';
+const today=new Date(); const iso=d=>{let x=new Date(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||{title:'멜버른 여행',start:'2026-11-21',end:'2026-11-26',accommodation:'70 Carlisle St, St Kilda VIC 3182, Australia',stops:[{"id": "seed-1", "date": "2026-11-21", "time": "12:35", "name": "멜버른 공항 도착", "note": "도착 예정"}, {"id": "seed-2", "date": "2026-11-21", "time": "", "name": "공항에서 숙소로 이동 및 체크인", "note": "St Kilda, 70 Carlisle St 인근"}, {"id": "seed-3", "date": "2026-11-21", "time": "", "name": "St Kilda 주변 산책", "note": "첫날은 여유롭게"}, {"id": "seed-4", "date": "2026-11-21", "time": "", "name": "Acland Street 구경 및 카페 방문", "note": ""}, {"id": "seed-5", "date": "2026-11-21", "time": "", "name": "St Kilda Beach", "note": "바다와 해변 풍경 즐기기"}, {"id": "seed-6", "date": "2026-11-21", "time": "", "name": "The Espy", "note": "저녁 방문"}, {"id": "seed-7", "date": "2026-11-22", "time": "", "name": "St Kilda Esplanade Sunday Market", "note": "오전 방문"}, {"id": "seed-8", "date": "2026-11-22", "time": "", "name": "Acland Street 주변 구경", "note": ""}, {"id": "seed-9", "date": "2026-11-22", "time": "", "name": "Luna Park", "note": "외관 및 주변 산책"}, {"id": "seed-10", "date": "2026-11-22", "time": "", "name": "St Kilda Pier", "note": ""}, {"id": "seed-11", "date": "2026-11-22", "time": "", "name": "St Kilda Beach", "note": "해변에서 여유롭게 시간 보내기"}, {"id": "seed-12", "date": "2026-11-22", "time": "", "name": "St Kilda 펭귄 관람", "note": "예약 미확정 · Session Two 및 취소표 확인 필요. 예약 불가 시 해변 산책으로 대체"}, {"id": "seed-13", "date": "2026-11-23", "time": "", "name": "Patricia Coffee Brewers", "note": "커피와 까눌레 또는 케이크"}, {"id": "seed-14", "date": "2026-11-23", "time": "", "name": "NGV International", "note": "예술 관람"}, {"id": "seed-15", "date": "2026-11-23", "time": "", "name": "Federation Square", "note": ""}, {"id": "seed-16", "date": "2026-11-23", "time": "", "name": "Flinders Street Station", "note": ""}, {"id": "seed-17", "date": "2026-11-23", "time": "", "name": "Degraves Street", "note": "골목 구경"}, {"id": "seed-18", "date": "2026-11-23", "time": "", "name": "Nico’s Sandwich Deli", "note": "점심 후보"}, {"id": "seed-19", "date": "2026-11-23", "time": "", "name": "Block Arcade", "note": ""}, {"id": "seed-20", "date": "2026-11-23", "time": "", "name": "Royal Arcade", "note": ""}, {"id": "seed-21", "date": "2026-11-23", "time": "", "name": "Dukes Coffee Roasters", "note": "커피"}, {"id": "seed-22", "date": "2026-11-23", "time": "", "name": "CBD 골목과 쇼핑 거리 산책", "note": ""}, {"id": "seed-23", "date": "2026-11-23", "time": "", "name": "Bodega Underground", "note": "저녁 후보 · 타코와 멕시칸 음식"}, {"id": "seed-24", "date": "2026-11-24", "time": "", "name": "Seven Seeds Coffee Roasters", "note": "아침 커피 및 브런치"}, {"id": "seed-25", "date": "2026-11-24", "time": "", "name": "Carlton Gardens", "note": "산책"}, {"id": "seed-26", "date": "2026-11-24", "time": "", "name": "Melbourne Museum", "note": ""}, {"id": "seed-27", "date": "2026-11-24", "time": "", "name": "Marios (Fitzroy)", "note": "점심 후보 · 클래식 이탈리안 파스타"}, {"id": "seed-28", "date": "2026-11-24", "time": "", "name": "Lost and Found Market", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-29", "date": "2026-11-24", "time": "", "name": "OTC Vintage", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-30", "date": "2026-11-24", "time": "", "name": "Vintage Sole", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-31", "date": "2026-11-24", "time": "", "name": "American Vintage Clothing Co", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-32", "date": "2026-11-24", "time": "", "name": "Treasure Vintage", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-33", "date": "2026-11-24", "time": "", "name": "Gertrude Street", "note": "산책 및 편집숍 구경"}, {"id": "seed-34", "date": "2026-11-24", "time": "", "name": "Bomba Tapas Bar 또는 Nana Thai", "note": "저녁 대안 중 선택"}, {"id": "seed-35", "date": "2026-11-25", "time": "", "name": "South Melbourne Market", "note": "오전 방문"}, {"id": "seed-36", "date": "2026-11-25", "time": "", "name": "Köy Restaurant", "note": "터키식 괴즐레메"}, {"id": "seed-37", "date": "2026-11-25", "time": "", "name": "Royal Botanic Gardens", "note": "오후 산책"}, {"id": "seed-38", "date": "2026-11-25", "time": "17:00", "name": "Queen Victoria Market Christmas Night Market", "note": "17:00–22:00 운영 예정 정보 · 방문 전 운영 여부 재확인"}, {"id": "seed-39", "date": "2026-11-26", "time": "10:30", "name": "멜버른 출발", "note": "항공편 출발"}],wishlist:[{name:'Lim Kopi',note:'말레이시아 음식 · 일정 여유 시 고려'},{name:'Pho Thin',note:'베트남 쌀국수 · 일정 여유 시 고려'},{name:'Five Guys',note:'미국식 버거 · 일정 여유 시 고려'},{name:'Namu',note:'곱창전골 · 정확한 매장 위치와 영업 여부 확인 전까지 일정 배정 보류'}]};
+if(!state.stops || state.stops.length===0){state.title='멜버른 여행';state.start='2026-11-21';state.end='2026-11-26';state.stops=[{"id": "seed-1", "date": "2026-11-21", "time": "12:35", "name": "멜버른 공항 도착", "note": "도착 예정"}, {"id": "seed-2", "date": "2026-11-21", "time": "", "name": "공항에서 숙소로 이동 및 체크인", "note": "St Kilda, 70 Carlisle St 인근"}, {"id": "seed-3", "date": "2026-11-21", "time": "", "name": "St Kilda 주변 산책", "note": "첫날은 여유롭게"}, {"id": "seed-4", "date": "2026-11-21", "time": "", "name": "Acland Street 구경 및 카페 방문", "note": ""}, {"id": "seed-5", "date": "2026-11-21", "time": "", "name": "St Kilda Beach", "note": "바다와 해변 풍경 즐기기"}, {"id": "seed-6", "date": "2026-11-21", "time": "", "name": "The Espy", "note": "저녁 방문"}, {"id": "seed-7", "date": "2026-11-22", "time": "", "name": "St Kilda Esplanade Sunday Market", "note": "오전 방문"}, {"id": "seed-8", "date": "2026-11-22", "time": "", "name": "Acland Street 주변 구경", "note": ""}, {"id": "seed-9", "date": "2026-11-22", "time": "", "name": "Luna Park", "note": "외관 및 주변 산책"}, {"id": "seed-10", "date": "2026-11-22", "time": "", "name": "St Kilda Pier", "note": ""}, {"id": "seed-11", "date": "2026-11-22", "time": "", "name": "St Kilda Beach", "note": "해변에서 여유롭게 시간 보내기"}, {"id": "seed-12", "date": "2026-11-22", "time": "", "name": "St Kilda 펭귄 관람", "note": "예약 미확정 · Session Two 및 취소표 확인 필요. 예약 불가 시 해변 산책으로 대체"}, {"id": "seed-13", "date": "2026-11-23", "time": "", "name": "Patricia Coffee Brewers", "note": "커피와 까눌레 또는 케이크"}, {"id": "seed-14", "date": "2026-11-23", "time": "", "name": "NGV International", "note": "예술 관람"}, {"id": "seed-15", "date": "2026-11-23", "time": "", "name": "Federation Square", "note": ""}, {"id": "seed-16", "date": "2026-11-23", "time": "", "name": "Flinders Street Station", "note": ""}, {"id": "seed-17", "date": "2026-11-23", "time": "", "name": "Degraves Street", "note": "골목 구경"}, {"id": "seed-18", "date": "2026-11-23", "time": "", "name": "Nico’s Sandwich Deli", "note": "점심 후보"}, {"id": "seed-19", "date": "2026-11-23", "time": "", "name": "Block Arcade", "note": ""}, {"id": "seed-20", "date": "2026-11-23", "time": "", "name": "Royal Arcade", "note": ""}, {"id": "seed-21", "date": "2026-11-23", "time": "", "name": "Dukes Coffee Roasters", "note": "커피"}, {"id": "seed-22", "date": "2026-11-23", "time": "", "name": "CBD 골목과 쇼핑 거리 산책", "note": ""}, {"id": "seed-23", "date": "2026-11-23", "time": "", "name": "Bodega Underground", "note": "저녁 후보 · 타코와 멕시칸 음식"}, {"id": "seed-24", "date": "2026-11-24", "time": "", "name": "Seven Seeds Coffee Roasters", "note": "아침 커피 및 브런치"}, {"id": "seed-25", "date": "2026-11-24", "time": "", "name": "Carlton Gardens", "note": "산책"}, {"id": "seed-26", "date": "2026-11-24", "time": "", "name": "Melbourne Museum", "note": ""}, {"id": "seed-27", "date": "2026-11-24", "time": "", "name": "Marios (Fitzroy)", "note": "점심 후보 · 클래식 이탈리안 파스타"}, {"id": "seed-28", "date": "2026-11-24", "time": "", "name": "Lost and Found Market", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-29", "date": "2026-11-24", "time": "", "name": "OTC Vintage", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-30", "date": "2026-11-24", "time": "", "name": "Vintage Sole", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-31", "date": "2026-11-24", "time": "", "name": "American Vintage Clothing Co", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-32", "date": "2026-11-24", "time": "", "name": "Treasure Vintage", "note": "빈티지 쇼핑 · 영업시간 확인 후 선택"}, {"id": "seed-33", "date": "2026-11-24", "time": "", "name": "Gertrude Street", "note": "산책 및 편집숍 구경"}, {"id": "seed-34", "date": "2026-11-24", "time": "", "name": "Bomba Tapas Bar 또는 Nana Thai", "note": "저녁 대안 중 선택"}, {"id": "seed-35", "date": "2026-11-25", "time": "", "name": "South Melbourne Market", "note": "오전 방문"}, {"id": "seed-36", "date": "2026-11-25", "time": "", "name": "Köy Restaurant", "note": "터키식 괴즐레메"}, {"id": "seed-37", "date": "2026-11-25", "time": "", "name": "Royal Botanic Gardens", "note": "오후 산책"}, {"id": "seed-38", "date": "2026-11-25", "time": "17:00", "name": "Queen Victoria Market Christmas Night Market", "note": "17:00–22:00 운영 예정 정보 · 방문 전 운영 여부 재확인"}, {"id": "seed-39", "date": "2026-11-26", "time": "10:30", "name": "멜버른 출발", "note": "항공편 출발"}];state.wishlist=state.wishlist||[{name:'Namu',note:'곱창전골 · 위치 및 영업 여부 확인 필요'}];}
+state.accommodation=state.accommodation||'70 Carlisle St, St Kilda VIC 3182, Australia';\nlet selected=state.start, editId=null, map=null, markers=[], routeLayer=null, currentTab='map';
+$('startDate').value=state.start;$('endDate').value=state.end;$('tripTitle').value=state.title;$('accommodation').value=state.accommodation||'';
+function persist(){state.title=$('tripTitle').value;state.start=$('startDate').value||state.start;state.end=$('endDate').value||state.end;state.accommodation=$('accommodation').value.trim();localStorage.setItem(KEY,JSON.stringify(state));}
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2400)}
+function days(){let a=new Date(state.start+'T12:00:00'),b=new Date(state.end+'T12:00:00'),out=[];if(isNaN(a)||isNaN(b)||b<a)return [state.start];for(let d=new Date(a);d<=b&&out.length<60;d.setDate(d.getDate()+1))out.push(iso(d));return out}
+function render(){persist();$('tripRange').textContent=`${state.start} — ${state.end}`;$('dateStrip').innerHTML='';days().forEach((d,i)=>{let dt=new Date(d+'T12:00:00');let b=document.createElement('button');b.className='day'+(d===selected?' active':'');b.innerHTML=`<small>DAY ${i+1}</small><b>${dt.getDate()}</b><small>${dt.toLocaleDateString('ko-KR',{month:'short',weekday:'short'})}</small>`;b.onclick=()=>{selected=d;render()};$('dateStrip').append(b)});if(!days().includes(selected))selected=days()[0];let n=state.stops.filter(s=>s.date===selected).sort((a,b)=>(a.time||'').localeCompare(b.time||''));$('dayTitle').textContent=new Date(selected+'T12:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});$('countPill').textContent=n.length+' places';$('stops').innerHTML='';$('listView').innerHTML='';
+if(!n.length){$('stops').innerHTML='<div class="empty">아직 등록된 일정이 없어요.<br>왼쪽에서 말하거나 장소를 추가해 보세요.</div>'}n.forEach((s,i)=>{let el=document.createElement('div');el.className='stop';el.innerHTML=`<div class="num">${i+1}</div><div><strong>${esc(s.name)}</strong><small>${s.time||'시간 미정'} ${s.note?' · '+esc(s.note):''}</small></div><div class="stop-actions"><button class="icon" aria-label="수정">✎</button></div>`;el.querySelector('button').onclick=()=>openEdit(s.id);$('stops').append(el);let li=document.createElement('div');li.className='stop';li.innerHTML=`<div class="num">${i+1}</div><div><strong>${esc(s.name)}</strong><small>${s.time||'시간 미정'}</small></div>`;$('listView').append(li)});$('mapView').classList.toggle('hidden',currentTab!=='map');$('listView').classList.toggle('hidden',currentTab!=='list');$('wishlistItems').innerHTML='';(state.wishlist||[]).forEach(w=>{let e=document.createElement('div');e.className='row';e.style.cssText='justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)';e.innerHTML=`<div><strong>${esc(w.name)}</strong><div class="hint">${esc(w.note||'')}</div></div>`;$('wishlistItems').append(e)});setTimeout(()=>{initMap();drawMap(n)},80)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function initMap(){if(!window.L)return;if(!map){map=L.map('map').setView([-37.8136,144.9631],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map)}map.invalidateSize()}
+async function geocode(name){let url='https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(name+', Melbourne, VIC, Australia');let r=await fetch(url);let j=await r.json();return j[0]?{lat:+j[0].lat,lon:+j[0].lon}:null}
+async function drawMap(items){
+ if(!map)return;
+ markers.forEach(m=>map.removeLayer(m));markers=[];
+ if(routeLayer){map.removeLayer(routeLayer);routeLayer=null}
+ let pts=[];
+ const lodgingName=state.accommodation?.trim();
+ let lodgingPoint=null;
+ if(lodgingName){try{let p=await geocode(lodgingName);if(p)lodgingPoint={s:{name:'숙소',time:'매일 출발 · 귀가'},...p}}catch(e){}}
+ for(let s of items){
+   if(s.lat&&s.lon)pts.push({s,lat:s.lat,lon:s.lon});
+   else{try{let p=await geocode(s.name);if(p){s.lat=p.lat;s.lon=p.lon;pts.push({s,...p})}}catch(e){}}
+ }
+ persist();
+ if(lodgingPoint){
+   let m=L.marker([lodgingPoint.lat,lodgingPoint.lon]).addTo(map).bindPopup(`<b>숙소</b><br>${esc(lodgingName)}`);
+   markers.push(m);
+ }
+ pts.forEach((p,i)=>{let m=L.marker([p.lat,p.lon]).addTo(map).bindPopup(`<b>${i+1}. ${esc(p.s.name)}</b><br>${p.s.time||''}`);markers.push(m)});
+ let routePts=lodgingPoint&&pts.length?[lodgingPoint,...pts,lodgingPoint]:pts;
+ if(routePts.length===1)map.setView([routePts[0].lat,routePts[0].lon],14);
+ else if(routePts.length>1){
+   let bounds=L.latLngBounds(routePts.map(p=>[p.lat,p.lon]));map.fitBounds(bounds,{padding:[28,28]});
+   try{
+     let coords=routePts.map(p=>`${p.lon},${p.lat}`).join(';');
+     let r=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`);
+     let j=await r.json();
+     if(j.routes?.[0])routeLayer=L.geoJSON(j.routes[0].geometry,{style:{color:'#526b5b',weight:4,opacity:.8,dashArray:'7 6'}}).addTo(map);
+   }catch(e){}
+ }else if(lodgingPoint)map.setView([lodgingPoint.lat,lodgingPoint.lon],14);
+ else map.setView([-37.8136,144.9631],12);
+}
+function add(name,date,time,note=''){if(!name.trim())return;state.stops.push({id:crypto.randomUUID(),name:name.trim(),date:date||selected,time:time||'',note});persist();selected=date||selected;render()}
+$('saveTrip').onclick=()=>{persist();render();toast('여행 정보가 저장됐어요')};
+$('addPlace').onclick=()=>{add($('placeName').value,$('placeDate').value,$('placeTime').value);$('placeName').value='';toast('장소를 추가했어요')};
+function openEdit(id){let s=state.stops.find(x=>x.id===id);if(!s)return;editId=id;$('editName').value=s.name;$('editTime').value=s.time||'';$('editDate').value=s.date;$('editNote').value=s.note||'';$('editModal').classList.add('open')}
+$('cancelEdit').onclick=()=>$('editModal').classList.remove('open');
+$('saveEdit').onclick=()=>{let s=state.stops.find(x=>x.id===editId);if(s){s.name=$('editName').value;s.time=$('editTime').value;s.date=$('editDate').value;s.note=$('editNote').value;selected=s.date;persist();render()}$('editModal').classList.remove('open')};
+$('deleteStop').onclick=()=>{state.stops=state.stops.filter(x=>x.id!==editId);persist();render();$('editModal').classList.remove('open')};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{currentTab=b.dataset.tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('optimizeBtn').onclick=()=>{let n=state.stops.filter(s=>s.date===selected);if(n.length<2){toast('동선을 정리하려면 장소가 2개 이상 필요해요');return}toast('현재는 입력한 시간 순서로 경로를 표시합니다. 실제 최적 경로 자동 재배열은 다음 버전 기능이에요')};
+$('parseBtn').onclick=()=>{
+ let raw=$('voiceText').value.trim(); if(!raw){toast('먼저 일정을 붙여넣거나 입력해 주세요');return}
+ const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ let activeDate=selected, added=0, skipped=0;
+ const monthNames={'1':'01','01':'01','2':'02','02':'02','3':'03','03':'03','4':'04','04':'04','5':'05','05':'05','6':'06','06':'06','7':'07','07':'07','8':'08','08':'08','9':'09','09':'09','10':'10','11':'11','12':'12'};
+ for(let line of lines){
+   let head=line.replace(/^[#>*•\-\s]+/,'').trim();
+   let dm=head.match(/(?:20\d{2}년\s*)?(\d{1,2})월\s*(\d{1,2})일/);
+   if(dm){let mm=monthNames[dm[1]]||dm[1].padStart(2,'0');activeDate=`2026-${mm}-${dm[2].padStart(2,'0')}`;continue}
+   if(/^(여행 정보|일정 구성 시 요청사항|추가 방문 희망|여행 스타일|이동:|숙소:|여행 기간:|도착:|출발:|⸻)/.test(head))continue;
+   if(/^\*{0,2}(멜버른 여행 일정|여행 정보|추가 방문 희망 식당|일정 구성)/.test(head))continue;
+   if(/^[-*•]\s*$/.test(head))continue;
+   let content=head.replace(/^[-*•]\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/\*{1,2}/g,'').trim();
+   if(!content || content.length<2)continue;
+   // Treat descriptive sub-bullets as notes attached to the previous stop rather than new venues.
+   if(/^(공식 관람|현재 Session|Session Two|예약이|예약 불가|모든 매장을|첫날은|여행 첫날|운영 시간|크리스마스 상품|마켓에서|점심은|저녁에는|오후에는|오전에는|항공편에 맞춰)/i.test(content)){
+      let prev=[...state.stops].reverse().find(s=>s.date===activeDate);
+      if(prev)prev.note=(prev.note?prev.note+' · ':'')+content;
+      continue;
+   }
+   let time='';
+   let tm=content.match(/(?:오전|오후|아침|저녁)?\s*(\d{1,2}):(\d{2})/);
+   if(tm){let h=+tm[1];if(/오후|저녁/.test(tm[0])&&h<12)h+=12;if(/오전|아침/.test(tm[0])&&h===12)h=0;time=String(h).padStart(2,'0')+':'+tm[2];content=content.replace(tm[0],'').trim()}
+   // A standalone day heading may not contain a bullet; ignore generic section labels.
+   if(/^(오전|오후|저녁|점심)\s*[:：]/.test(content))content=content.replace(/^(오전|오후|저녁|점심)\s*[:：]\s*/,'');
+   content=content.replace(/\s{2,}/g,' ').replace(/[.。]$/,'').trim();
+   if(/^(여행 기간|숙소|도착|출발|여행 스타일|이동|장소|일정 구성 시 요청사항)/.test(content)){skipped++;continue}
+   if(content.length>1){state.stops.push({id:crypto.randomUUID(),name:content,date:activeDate,time,note:''});added++}
+ }
+ persist();$('voiceText').value='';render();toast(added?`${added}개 항목을 날짜별로 추가했어요. 중복·시간·장소를 확인해 주세요.`:'일정 항목을 찾지 못했어요. 날짜 제목과 글머리표 형식을 확인해 주세요.');
+};
+let recognition=null;const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(Speech){recognition=new Speech();recognition.lang='ko-KR';recognition.interimResults=true;recognition.onresult=e=>{$('voiceText').value=Array.from(e.results).map(x=>x[0].transcript).join(' ')};recognition.onend=()=>$('micBtn').classList.remove('listening');recognition.onerror=()=>{ $('micBtn').classList.remove('listening');toast('음성 인식에 실패했어요. 마이크 권한을 확인해 주세요')}}else $('micBtn').disabled=true;
+$('micBtn').onclick=()=>{if(!recognition){toast('이 브라우저에서는 음성 입력을 지원하지 않아요');return}if($('micBtn').classList.contains('listening'))recognition.stop();else{recognition.start();$('micBtn').classList.add('listening');$('micBtn').textContent='■ 듣는 중'}};if(recognition)recognition.onend=()=>{$('micBtn').classList.remove('listening');$('micBtn').textContent='🎙 음성 입력'};
+$('exportBtn').onclick=()=>{let blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='triploop-itinerary.json';a.click();URL.revokeObjectURL(a.href)};
+$('startDate').onchange=()=>{selected=$('startDate').value;render()};$('endDate').onchange=render;$('accommodation').onchange=()=>{persist();render();toast('숙소를 동선에 반영했어요')};
+render();
+</script>
+</body></html>
