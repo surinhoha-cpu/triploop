@@ -280,6 +280,20 @@ async function geocode(query){
  geoCache[query]=point;localStorage.setItem(geoCacheKey,JSON.stringify(geoCache));
  return point;
 }
+async function resolveGoogleMapsShortLink(raw){
+ const endpoint='https://r.jina.ai/http://'+String(raw).trim().replace(/^https?:\\/\\//i,'');
+ const response=await fetch(endpoint,{headers:{'Accept':'text/plain'}});
+ if(!response.ok)throw new Error('short-link-resolve-failed');
+ const body=await response.text();
+ const title=(body.match(/^Title:\\s*(.+)$/mi)||[])[1]?.trim()||'';
+ let query=title.replace(/^Google Maps\\s*[-:]\\s*/i,'').replace(/\\s*[-:]\\s*Google Maps$/i,'').trim();
+ if(!query||/^Google Maps$/i.test(query)){
+  const candidate=(body.match(/(?:place|search)\\/([^\\n?]+)/i)||[])[1];
+  if(candidate)try{query=decodeURIComponent(candidate.replace(/\\+/g,' '))}catch{}
+ }
+ if(!query)throw new Error('place-name-not-found');
+ return {url:raw,query,shortResolved:true};
+}
 function parseGoogleMapsLink(raw){
  const text=String(raw||'').trim();if(!text)return null;
  let u;try{u=new URL(text)}catch{return {url:'',query:text,plain:true}}
@@ -300,7 +314,7 @@ async function importGoogleMapsPlace(){
  const raw=$('mapPlaceUrl').value.trim(),parsed=parseGoogleMapsLink(raw);
  $('mapPlacePreview').innerHTML='';$('mapPlaceActions').classList.add('hidden');pendingImportedPlace=null;
  if(!parsed){toast('Google Maps 링크 형식을 확인해 주세요');return}
- if(parsed.short){$('mapPlacePreview').textContent='Google Maps 단축 링크는 장소 정보를 바로 읽을 수 없어요. 링크를 열어 장소 페이지 주소창의 전체 주소를 복사하거나, 이 칸에 장소명과 도시를 입력해 주세요. 예: Seven Seeds Coffee Roasters, Melbourne.';return}
+ if(parsed.short){$('mapPlacePreview').textContent='단축 링크에서 장소 정보를 확인하는 중…';try{Object.assign(parsed,await resolveGoogleMapsShortLink(raw))}catch(e){$('mapPlacePreview').textContent='단축 링크를 자동으로 해석하지 못했어요. Google Maps에서 장소 이름이 보이는 공유 링크를 다시 복사해 주세요.';return}}
  let best=null;
  try{
   if(parsed.query){
@@ -402,7 +416,7 @@ $('editModal').addEventListener('click',e=>{if(e.target===$('editModal'))closeEd
 $('fetchEditMapInfo').onclick=async()=>{
  const raw=$('editMapUrl').value.trim(),parsed=parseGoogleMapsLink(raw);editImportedPlace=null;
  if(!parsed){$('editMapPreview').textContent='Google Maps 공유 링크를 확인해 주세요.';return}
- if(parsed.short){$('editMapPreview').textContent='단축 링크는 바로 읽을 수 없어요. Google Maps에서 장소 이름이 포함된 전체 공유 링크를 복사해 주세요.';return}
+ if(parsed.short){$('editMapPreview').textContent='단축 링크에서 장소 정보를 확인하는 중…';$('fetchEditMapInfo').disabled=true;$('fetchEditMapInfo').textContent='링크 확인 중…';try{Object.assign(parsed,await resolveGoogleMapsShortLink(raw))}catch(e){$('editMapPreview').textContent='단축 링크를 자동으로 해석하지 못했어요. Google Maps에서 장소 이름이 보이는 공유 링크를 다시 복사해 주세요.';$('fetchEditMapInfo').disabled=false;$('fetchEditMapInfo').textContent='링크에서 장소 정보 가져오기';return}}
  $('fetchEditMapInfo').disabled=true;$('fetchEditMapInfo').textContent='장소 정보 확인 중…';
  try{
   let best=null;
