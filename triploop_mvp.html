@@ -81,7 +81,7 @@
 </head>
 <body>
 <div class="app">
- <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 27</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
+ <header class="top"><a class="brand-link" href="./" aria-label="Triploop 대시보드로 이동"><div class="brand">trip<span>loop</span></div><div class="sub">여행을 말하면, 일정이 됩니다.</div><div class="revision-top">Triploop · 수정본 29</div></a><div class="top-actions"><button class="ghost" id="editTripBtn">정보 수정</button></div></header>
  <div class="layout">
   <aside class="panel stack">
    <div><h2 class="section-title">일정 추가</h2><p class="hint">여행 정보를 바꾸려면 상단의 ‘여행 정보 수정’을 눌러주세요.</p></div>
@@ -124,7 +124,13 @@ let state=JSON.parse(localStorage.getItem(KEY)||'null')||{title:'멜버른 여�
 
 const tripMeta=tripId?(JSON.parse(localStorage.getItem('triploop_trips_v1')||'[]').find(t=>t.id===tripId)||{}):{};
 const legacyState=(()=>{try{return JSON.parse(localStorage.getItem('triploop_mvp_v1')||'null')}catch{return null}})();
-// Each dashboard trip is isolated: never copy the legacy itinerary into a new trip.
+// Recovery: if this trip's new isolated storage is empty, restore the legacy itinerary
+// only when its travel dates match this exact dashboard trip. Never overwrite non-empty trip data.
+if(tripId&&Array.isArray(state.stops)&&state.stops.length===0&&legacyState&&Array.isArray(legacyState.stops)&&legacyState.stops.length>0&&legacyState.start===tripMeta.start&&legacyState.end===tripMeta.end){
+ state={...legacyState,...state,stops:legacyState.stops,wishlist:Array.isArray(legacyState.wishlist)?legacyState.wishlist:(state.wishlist||[])};
+ localStorage.setItem(KEY,JSON.stringify(state));
+}
+// Each dashboard trip is isolated: never copy the legacy itinerary into a different trip.
 state.title=state.title||tripMeta.title||'멜버른 여행';
 state.start=state.start||tripMeta.start||legacyState?.start||'2026-11-21';
 state.end=state.end||tripMeta.end||legacyState?.end||state.start;
@@ -461,7 +467,7 @@ $('parseBtn').onclick=()=>{
    const candidateCue=/(?:보류|후보|시간\s*(?:남으면|되면)|여유\s*있으면|가능하면|대안으로)/i.test(head);
    if(candidateCue){
      let candidate=head.replace(/^(?:보류\s*후보|후보)\s*[:：]?/i,'').replace(/(?:보류\s*후보|후보)(?:로)?\s*(?:넣어줘|추가해줘|등록해줘)?/ig,'').replace(/(?:시간\s*(?:남으면|되면)|여유\s*있으면|가능하면\s*(?:방문|가고 싶어)?|대안으로)/ig,'').replace(/(?:일정에\s*)?(?:넣어줘|추가해줘|등록해줘)/ig,'').replace(/^[-:：\s]+|[-:：\s]+$/g,'').trim();
-     if(candidate.length>1&&!state.wishlist.some(w=>w.name.toLowerCase()===candidate.toLowerCase())){state.wishlist.push({name:candidate,note:'자연어 입력으로 추가된 보류 후보'});added++;}
+     if(candidate.length>1&&!state.wishlist.some(w=>(w.name||'').toLowerCase()===candidate.toLowerCase())){const explicitCat=/식당|맛집|음식|레스토랑/i.test(head)?'food':/카페|커피/i.test(head)?'cafe':/쇼핑|매장|마켓/i.test(head)?'shop':/관광지|명소|전시|박물관/i.test(head)?'sight':null;state.wishlist.push({name:candidate,category:explicitCat||getWishlistCategory({name:candidate,note:''}),note:'음성·자연어 입력으로 추가된 보류 후보'});added++;}
      continue;
    }
    let dm=head.match(/(?:20\d{2}년\s*)?(\d{1,2})월\s*(\d{1,2})일/);
