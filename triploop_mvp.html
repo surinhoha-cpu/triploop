@@ -466,7 +466,7 @@ $('parseBtn').onclick=()=>{
    // Natural-language candidate cues are saved to the separate wishlist, not placed on the map.
    const candidateCue=/(?:보류|후보|시간\s*(?:남으면|되면)|여유\s*있으면|가능하면|대안으로)/i.test(head);
    if(candidateCue){
-     let candidate=head.replace(/^(?:보류\s*후보|후보)\s*[:：]?/i,'').replace(/(?:보류\s*후보|후보)(?:로)?\s*(?:넣어줘|추가해줘|등록해줘)?/ig,'').replace(/(?:시간\s*(?:남으면|되면)|여유\s*있으면|가능하면\s*(?:방문|가고 싶어)?|대안으로)/ig,'').replace(/(?:일정에\s*)?(?:넣어줘|추가해줘|등록해줘)/ig,'').replace(/^[-:：\s]+|[-:：\s]+$/g,'').trim();
+     let candidate=head.replace(/^(?:보류\s*후보|후보)\s*[:：]?/i,'').replace(/(?:보류\s*후보|후보)(?:로)?\s*(?:넣어줘|추가해줘|등록해줘)?/ig,'').replace(/(?:시간\s*(?:남으면|되면)|여유\s*있으면|가능하면\s*(?:방문|가고 싶어)?|대안으로)/ig,'').replace(/(?:일정에\s*)?(?:넣어줘|추가해줘|등록해줘)/ig,'').replace(/^(?:식당|맛집|레스토랑|카페|커피|쇼핑|관광지|명소)\s*(?:으로|:)?\s*/i,'').replace(/^[-:：\s]+|[-:：\s]+$/g,'').trim();
      if(candidate.length>1&&!state.wishlist.some(w=>(w.name||'').toLowerCase()===candidate.toLowerCase())){const explicitCat=/식당|맛집|음식|레스토랑/i.test(head)?'food':/카페|커피/i.test(head)?'cafe':/쇼핑|매장|마켓/i.test(head)?'shop':/관광지|명소|전시|박물관/i.test(head)?'sight':null;state.wishlist.push({name:candidate,category:explicitCat||getWishlistCategory({name:candidate,note:''}),note:'음성·자연어 입력으로 추가된 보류 후보'});added++;}
      continue;
    }
