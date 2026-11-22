@@ -61,7 +61,7 @@ function render(){
  trips.forEach(t=>{
   const card=document.createElement('article');card.className='card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',t.title+' 일정 열기');
   card.innerHTML='<div class="card-top"><div><div class="city">'+esc(t.city||'도시 미정')+'</div><div class="trip-title">'+esc(t.title||'이름 없는 여행')+'</div><div class="dates">'+esc(dateLabel(t.start))+' — '+esc(dateLabel(t.end))+'</div></div><div class="actions"><button class="small edit">수정</button><button class="small delete">삭제</button></div></div><div class="meta"><span>▦ '+dayCount(t)+'일 일정</span><span>⌖ '+(Number(t.placeCount)||0)+'개 장소</span></div>';
-  const open=()=>location.href='triploop_mvp.html?trip='+encodeURIComponent(t.id)+'&v=29;
+  const open=()=>location.href='triploop_mvp.html?trip='+encodeURIComponent(t.id)+'&v=29';
   card.addEventListener('click',e=>{if(!e.target.closest('button'))open()});
   card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();open()}});
   card.querySelector('.edit').addEventListener('click',e=>{e.stopPropagation();showDialog(t)});
