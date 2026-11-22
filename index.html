@@ -24,7 +24,7 @@ dialog{border:0;border-radius:20px;padding:0;width:min(440px,calc(100% - 28px));
 </head>
 <body>
 <div class="app">
-<header class="top"><div><div class="brand">trip<span>loop</span></div><div class="sub">여행을 한곳에서 관리하세요.</div><div class="revision-top">Triploop · 수정본 28</div></div><button class="primary" id="newTrip">＋ 새 여행 만들기</button></header>
+<header class="top"><div><div class="brand">trip<span>loop</span></div><div class="sub">여행을 한곳에서 관리하세요.</div><div class="revision-top">Triploop · 수정본 29</div></div><button class="primary" id="newTrip">＋ 새 여행 만들기</button></header>
 <main>
 <div class="eyebrow">YOUR TRIPS</div><h1>어디로 떠나볼까요?</h1><p class="intro">여행을 만들고 날짜별 일정을 한곳에서 관리할 수 있어요.</p>
 <div class="toolbar"><div class="count" id="tripCount">여행 0개</div></div>
@@ -61,7 +61,7 @@ function render(){
  trips.forEach(t=>{
   const card=document.createElement('article');card.className='card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',t.title+' 일정 열기');
   card.innerHTML='<div class="card-top"><div><div class="city">'+esc(t.city||'도시 미정')+'</div><div class="trip-title">'+esc(t.title||'이름 없는 여행')+'</div><div class="dates">'+esc(dateLabel(t.start))+' — '+esc(dateLabel(t.end))+'</div></div><div class="actions"><button class="small edit">수정</button><button class="small delete">삭제</button></div></div><div class="meta"><span>▦ '+dayCount(t)+'일 일정</span><span>⌖ '+(Number(t.placeCount)||0)+'개 장소</span></div>';
-  const open=()=>location.href='triploop_mvp.html?trip='+encodeURIComponent(t.id);
+  const open=()=>location.href='triploop_mvp.html?trip='+encodeURIComponent(t.id)+'&v=29;
   card.addEventListener('click',e=>{if(!e.target.closest('button'))open()});
   card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();open()}});
   card.querySelector('.edit').addEventListener('click',e=>{e.stopPropagation();showDialog(t)});
