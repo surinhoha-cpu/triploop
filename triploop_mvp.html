@@ -501,8 +501,8 @@ $('parseBtn').onclick=()=>{
  persist();$('voiceText').value='';render();toast(added?`${added}개 항목을 일정 또는 보류 후보로 추가했어요.`:'일정 항목을 찾지 못했어요. 날짜와 장소 이름을 확인해 주세요.');
 };
 let recognition=null;const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(Speech){recognition=new Speech();recognition.lang='ko-KR';recognition.interimResults=true;recognition.onresult=e=>{$('voiceText').value=Array.from(e.results).map(x=>x[0].transcript).join(' ')};recognition.onend=()=>$('micBtn').classList.remove('listening');recognition.onerror=()=>{ $('micBtn').classList.remove('listening');toast('음성 인식에 실패했어요. 마이크 권한을 확인해 주세요')}}else $('micBtn').disabled=true;
-$('micBtn').onclick=()=>{if(!recognition){toast('이 브라우저에서는 음성 입력을 지원하지 않아요');return}if($('micBtn').classList.contains('listening'))recognition.stop();else{recognition.start();$('micBtn').classList.add('listening');$('micBtn').textContent='■ 듣는 중'}};if(recognition)recognition.onend=()=>{$('micBtn').classList.remove('listening');$('micBtn').textContent='🎙 음성 입력'};
+if(Speech){recognition=new Speech();recognition.lang='ko-KR';recognition.interimResults=true;recognition.onresult=e=>{$('voiceText').value=Array.from(e.results).map(x=>x[0].transcript).join(' ')};recognition.onend=()=>$('micBtn').classList.remove('listening');recognition.onerror=()=>{ $('micBtn').classList.remove('listening');toast('음성 인식에 실패했어요. 마이크 권한을 확인해 주세요')}}
+$('micBtn').onclick=()=>{if(!recognition){$('voiceText').focus();toast('이 브라우저는 앱 내 음성 인식을 지원하지 않아요. 키보드의 마이크 버튼으로 받아쓰기를 한 뒤 ‘일정 추가’를 눌러주세요.');return}if($('micBtn').classList.contains('listening'))recognition.stop();else{recognition.start();$('micBtn').classList.add('listening');$('micBtn').textContent='■ 듣는 중'}};if(recognition)recognition.onend=()=>{$('micBtn').classList.remove('listening');$('micBtn').textContent='🎙 음성 입력'};
 
 $('startDate').onchange=()=>{selected=$('startDate').value;render()};$('endDate').onchange=render;$('accommodation').onchange=()=>{persist();render();toast('숙소를 동선에 반영했어요')};
 render();
